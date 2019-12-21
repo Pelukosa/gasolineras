@@ -1,30 +1,3 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <script src='https://api.mapbox.com/mapbox-gl-js/v1.4.1/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v1.4.1/mapbox-gl.css' rel='stylesheet' />
-
-    <title>Document</title>
-</head>
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-    }
-
-    #map {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 100%;
-    }
-
-    ;
-</style>
 <?php
 $servername = "127.0.0.1:3307";
 $username = "root";
@@ -46,104 +19,106 @@ $conn->close();
 
 ?>
 
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.css' rel='stylesheet' />
+
+    <title>Document</title>
+</head>
+<style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+      .marker {
+  background-image: url('gas-station.svg');
+  background-size: cover;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+.mapboxgl-popup {
+  max-width: 200px;
+}
+
+.mapboxgl-popup-content {
+  text-align: center;
+  font-family: 'Open Sans', sans-serif;
+}
+    </style>
+
 <body>
-    <div id='map'></div>
+<div id='map'></div>
 
-    <script>
-        var geojson = [{
-                type: 'Feature',
-                geometry: {
-                    type: 'Point',
-                    coordinates: [-77.031952, 38.913184]
-                },
-                properties: {
-                    'marker-color': '#3bb2d0',
-                    'marker-size': 'large',
-                    'marker-symbol': 'rocket'
-                }
-            },
-            {
-                type: 'Feature',
-                geometry: {
-                    type: 'Point',
-                    coordinates: [-122.413682, 37.775408]
-                },
-                properties: {
-                    'marker-color': '#3bb2d0',
-                    'marker-size': 'large',
-                    'marker-symbol': 'rocket'
-                }
-            }
-        ];
+<script>
 
-        var mapSimple = L.mapbox.map('map_simple')
-            .setView([37.8, -96], 4)
-            .addLayer(L.mapbox.styleLayer('mapbox://styles/mapbox/light-v10'));
-        var myLayer = L.mapbox.featureLayer().setGeoJSON(geojson).addTo(mapSimple);
-        mapSimple.scrollWheelZoom.disable();
-    </script>
+mapboxgl.accessToken = 'pk.eyJ1IjoicGVsdWtvc2EiLCJhIjoiY2s0ZWt3bmw5MDQ3MzNkbWh4OHl6Ymk0YyJ9.SjBddTn9NPdfGPGCqfv4xQ';
 
+var map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/mapbox/light-v10',
+  zoom: 3
+});
 
+map.fitBounds([
+    <?php 
+       foreach ($data as $fit) {
+    ?>
+    [<?php echo str_replace(",", ".", $fit["LONGITUD"]); ?>, <?php echo str_replace(",", ".", $fit["LATITUD"]); ?>],
+    <?php } ?>
+]);
 
+var geojson = {
+  type: 'FeatureCollection',
+  features: [
+    <?php if ($data->num_rows > 0) {
+        foreach ($data as $row) {
+    ?> 
+    {
+        type: 'Feature',
+        geometry: {
+            type: 'Point',
+            coordinates: [<?php echo str_replace(",", ".", $row["LONGITUD"]) ?>, <?php echo str_replace(",", ".", $row["LATITUD"]) ?>]
+        },
+        properties: {
+            title: '<?php echo $row["ROTULO"]?>',
+            description: '<p>Diesel: <strong><?php echo $row["PRECIO_GASOLEO_A"]?></strong></p>'
+        }
+    },
+    <?php } } ?>
+  ]
+};
 
-    <!--
-    <script>
-        mapboxgl.accessToken = 'pk.eyJ1IjoicGVsdWtvc2EiLCJhIjoiY2s0ZWt3bmw5MDQ3MzNkbWh4OHl6Ymk0YyJ9.SjBddTn9NPdfGPGCqfv4xQ';
-        var geojson = {
-            'type': 'FeatureCollection',
-            'features': [
-                <?php if ($data->num_rows > 0) {
-                    while ($row = $data->fetch_assoc()) {
+geojson.features.forEach(function(marker) {
 
-                ?> {
-                            'type': 'Feature',
-                            'properties': {
-                                'message': '<?php echo $row["ROTULO"] . ' - ' . $row["PRECIO_GASOLEO_A"] ?>',
-                                'iconSize': [10, 10]
-                            },
-                            'geometry': {
-                                'type': 'Point',
-                                'coordinates': [<?php echo str_replace(",", ".", $row["LONGITUD"]) ?>, <?php echo str_replace(",", ".", $row["LATITUD"]) ?>]
-                            }
-                        },
-                <?php }
-                } ?> {
+// create a HTML element for each feature
+var el = document.createElement('div');
+el.className = 'marker';
 
-                }
+// make a marker for each feature and add to the map
+new mapboxgl.Marker(el)
+  .setLngLat(marker.geometry.coordinates)
+  .setPopup(new mapboxgl.Popup({ offset: 25 }) // add popups
+    .setHTML('<h3>' + marker.properties.title + '</h3><p>' + marker.properties.description + '</p>'))
+  .addTo(map);
+});
+</script>
 
-            ]
-        };
-
-        var map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v11',
-            center: [-4.730988, 41.637726],
-            zoom: 12
-        });
-
-        // add markers to map
-        geojson.features.forEach(function(marker) {
-            // create a DOM element for the marker
-            var el = document.createElement('div');
-            el.className = 'marker';
-            el.style.backgroundImage =
-                'url(https://placekitten.com/g/' +
-                marker.properties.iconSize.join('/') +
-                '/)';
-            el.style.width = marker.properties.iconSize[0] + 'px';
-            el.style.height = marker.properties.iconSize[1] + 'px';
-
-            el.addEventListener('click', function() {
-                window.alert(marker.properties.message);
-            });
-
-            // add marker to map
-            new mapboxgl.Marker(el)
-                .setLngLat(marker.geometry.coordinates)
-                .addTo(map);
-        });
-    </script>
-    -->
 </body>
 
 </html>
