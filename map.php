@@ -24,6 +24,24 @@
     }
 
     ;
+
+    .marker {
+        background-image: url('mapbox-icon.png');
+        background-size: cover;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    .mapboxgl-popup {
+        max-width: 200px;
+    }
+
+    .mapboxgl-popup-content {
+        text-align: center;
+        font-family: 'Open Sans', sans-serif;
+    }
 </style>
 <?php
 $servername = "127.0.0.1:3307";
@@ -50,100 +68,56 @@ $conn->close();
     <div id='map'></div>
 
     <script>
-        var geojson = [{
-                type: 'Feature',
-                geometry: {
-                    type: 'Point',
-                    coordinates: [-77.031952, 38.913184]
-                },
-                properties: {
-                    'marker-color': '#3bb2d0',
-                    'marker-size': 'large',
-                    'marker-symbol': 'rocket'
-                }
-            },
+        mapboxgl.accessToken = 'pk.eyJ1IjoicGVsdWtvc2EiLCJhIjoiY2s0ZWt3bmw5MDQ3MzNkbWh4OHl6Ymk0YyJ9.SjBddTn9NPdfGPGCqfv4xQ';
+
+        var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/light-v10',
+            center: [-96, 37.8],
+            zoom: 3
+        });
+
+
+        var geojson = {
+            type: 'FeatureCollection',
+            features: [
+                { <?php if ($data->num_rows > 0) { while ($row = $data->fetch_assoc()) { ?>
+                            type: 'Feature',
+                            geometry: {
+                                type: 'Point',
+                                coordinates: [<?php echo str_replace(",", ".", $row["LONGITUD"]) ?>, <?php echo str_replace(",", ".", $row["LATITUD"]) ?>]
+                            },
+                            properties: {
+                                title: '<?php echo $row["ROTULO"] ?>',
+                                description: '<?php echo $row["PRECIO_GASOLEO_A"] ?>'
+                            }
+                }, <?php } } ?> 
             {
                 type: 'Feature',
                 geometry: {
                     type: 'Point',
-                    coordinates: [-122.413682, 37.775408]
+                    coordinates: [-122.414, 37.776]
                 },
                 properties: {
-                    'marker-color': '#3bb2d0',
-                    'marker-size': 'large',
-                    'marker-symbol': 'rocket'
+                    title: 'Mapbox',
+                    description: 'San Francisco, California'
                 }
             }
-        ];
-
-        var mapSimple = L.mapbox.map('map_simple')
-            .setView([37.8, -96], 4)
-            .addLayer(L.mapbox.styleLayer('mapbox://styles/mapbox/light-v10'));
-        var myLayer = L.mapbox.featureLayer().setGeoJSON(geojson).addTo(mapSimple);
-        mapSimple.scrollWheelZoom.disable();
-    </script>
-
-
-
-
-    <!--
-    <script>
-        mapboxgl.accessToken = 'pk.eyJ1IjoicGVsdWtvc2EiLCJhIjoiY2s0ZWt3bmw5MDQ3MzNkbWh4OHl6Ymk0YyJ9.SjBddTn9NPdfGPGCqfv4xQ';
-        var geojson = {
-            'type': 'FeatureCollection',
-            'features': [
-                <?php if ($data->num_rows > 0) {
-                    while ($row = $data->fetch_assoc()) {
-
-                ?> {
-                            'type': 'Feature',
-                            'properties': {
-                                'message': '<?php echo $row["ROTULO"] . ' - ' . $row["PRECIO_GASOLEO_A"] ?>',
-                                'iconSize': [10, 10]
-                            },
-                            'geometry': {
-                                'type': 'Point',
-                                'coordinates': [<?php echo str_replace(",", ".", $row["LONGITUD"]) ?>, <?php echo str_replace(",", ".", $row["LATITUD"]) ?>]
-                            }
-                        },
-                <?php }
-                } ?> {
-
-                }
-
             ]
         };
 
-        var map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v11',
-            center: [-4.730988, 41.637726],
-            zoom: 12
-        });
-
-        // add markers to map
         geojson.features.forEach(function(marker) {
-            // create a DOM element for the marker
+
+            // create a HTML element for each feature
             var el = document.createElement('div');
             el.className = 'marker';
-            el.style.backgroundImage =
-                'url(https://placekitten.com/g/' +
-                marker.properties.iconSize.join('/') +
-                '/)';
-            el.style.width = marker.properties.iconSize[0] + 'px';
-            el.style.height = marker.properties.iconSize[1] + 'px';
 
-            el.addEventListener('click', function() {
-                window.alert(marker.properties.message);
-            });
-
-            // add marker to map
+            // make a marker for each feature and add to the map
             new mapboxgl.Marker(el)
                 .setLngLat(marker.geometry.coordinates)
                 .addTo(map);
         });
     </script>
-    -->
 </body>
 
 </html>
