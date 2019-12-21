@@ -10,11 +10,12 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-$sql = "SELECT LATITUD, LONGITUD, ROTULO, PRECIO_GASOLEO_A FROM gasolineras WHERE PROVINCIA = 'VALLADOLID'";
+$sql = "SELECT LATITUD, LONGITUD, ROTULO, PRECIO_GASOLEO_A FROM gasolineras WHERE PROVINCIA IN ('VALLADOLID')";
 $data = $conn->query($sql);
 //print("<pre>".print_r($result,true)."</pre>");
 
-
+$sql = "SELECT LATITUD, LONGITUD, ROTULO, PRECIO_GASOLEO_A FROM gasolineras WHERE PROVINCIA IN ('VALLADOLID') AND PRECIO_GASOLEO_A > 0 ORDER BY PRECIO_GASOLEO_A ASC LIMIT 1";
+    $lowPrice = $conn->query($sql);
 $conn->close();
 
 ?>
@@ -63,7 +64,16 @@ $conn->close();
     </style>
 
 <body>
+    
+<?php /*
+    foreach ($lowPrice as $low){
+        print("<pre>".print_r($low["PRECIO_GASOLEO_A"],true)."</pre>");
+    }
+    exit;
+    */
+?>
 <div id='map'></div>
+
 
 <script>
 
