@@ -1,8 +1,8 @@
 <?php
 $servername = "Localhost";
-$username = "arfix311_arfix31";
-$password = "Arronches123";
-$dbname = "arfix311_arfix";
+$username = "root";
+$password = "";
+$dbname = "gas-station";
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
