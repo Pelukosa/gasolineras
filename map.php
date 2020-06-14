@@ -79,8 +79,9 @@ foreach ($data as $row) {
     height: 20px;
     cursor: pointer;
   }
+
   .marker-active {
-    
+
     background-size: cover;
     width: 20px;
     height: 20px;
@@ -104,6 +105,7 @@ foreach ($data as $row) {
     position: relative;
     animation: animateStation 2s cubic-bezier(0.8, 0.38, 0.45, 0.94) 0s infinite alternate;
   }
+
   @keyframes animateStation {
     0% {
       left: 0px;
@@ -120,12 +122,39 @@ foreach ($data as $row) {
       top: -15px;
     }
   }
+
+  .hide-nav {
+    float: right;
+    margin-right: -70px;
+  }
+
+  .hidden {
+    left: -250px;
+  }
+
+  #fit {
+    display: block;
+    position: relative;
+    margin: 0px auto;
+    width: 50%;
+    height: 40px;
+    padding: 10px;
+    border: none;
+    border-radius: 3px;
+    font-size: 12px;
+    text-align: center;
+    color: #fff;
+    background: #ee8a65;
+  }
+
 </style>
 
 <body>
 
-  <div style="position: absolute; width: 250px; height: 100%; background: white;z-index: 9999;">
+  <div id="left-nav" style="position: absolute; width: 250px; height: 100%; background: white;z-index: 9999;">
     <div style="width: 80%; margin: 0 auto;">
+      <div class="hide-nav">OCULTAR</div>
+      <button id="fit">Centrar</button>
       <ul class="nav flex-column">
         <?php if ($data->num_rows > 0) {
           foreach ($gasStationsRank as $row) {
@@ -137,7 +166,9 @@ foreach ($data as $row) {
         ?>
       </ul>
     </div>
+
   </div>
+
   <div id='map'></div>
 
 
@@ -153,15 +184,29 @@ foreach ($data as $row) {
 
     var geolocate = new mapboxgl.GeolocateControl();
 
-    
+
     geolocate.on('geolocate', function(e) {
       var lon = e.coords.longitude;
       var lat = e.coords.latitude
-      window.location.href = "http://localhost/gasolineras/map.php?lng=" + lon + "&lat=" + lat;
+      window.location.href = "map.php?lng=" + lon + "&lat=" + lat;
     });
 
     map.addControl(geolocate);
-
+    document.getElementById('fit').addEventListener('click', function() {
+      map.fitBounds([
+        <?php if ($data->num_rows > 0) {
+          $counts = $data->num_rows;
+          $i = 1;
+          foreach ($gasStationsRank as $row) {
+            echo "[" . $row["LONGITUD"] . "," . $row["LATITUD"] . "]";
+            if ($counts != $i) {
+              echo ",";
+            }
+            $i++;
+          }
+        } ?>
+      ]);
+    });
     var geojson = {
       type: 'FeatureCollection',
       features: [
@@ -208,6 +253,15 @@ foreach ($data as $row) {
         var station = $(this).attr("id");
         var markerClass = $("." + station + "").attr("class");
         $("." + station + "").addClass("animate");
+      });
+
+      $(".hide-nav").click(function() {
+        if (!$("#left-nav").hasClass("hidden")) {
+          $("#left-nav").addClass("hidden");
+        } else {
+          $("#left-nav").removeClass("hidden");
+        }
+
       });
     });
   </script>
