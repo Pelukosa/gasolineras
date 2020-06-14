@@ -4,6 +4,7 @@ $username = "root";
 $password = "";
 $dbname = "gas-station";
 
+
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 // Check connection
